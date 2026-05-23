@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For You 💌</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0d0010;
+    overflow: hidden;
+    font-family: 'Lato', sans-serif;
+    height: 100vh;
+    width: 100vw;
+    cursor: none;
+  }
+
+  /* ── Stars background ── */
+  #stars {
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 40%, rgba(120,40,180,0.25) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(200,80,160,0.2) 0%, transparent 50%),
+      #0d0010;
+    z-index: 0;
+  }
+  #stars::before, #stars::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 5%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 50% 25%, rgba(255,255,255,0.8) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 10%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 30%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 15% 60%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 40% 70%, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 55%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 65%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 25% 85%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 75% 80%, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 55% 90%, rgba(255,255,255,0.5) 0%, transparent 100%);
+  }
+
+  /* ── Start screen ── */
+  #start-screen {
+    position: fixed; inset: 0; z-index: 300;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 24px;
+    background: radial-gradient(ellipse at center, rgba(80,0,60,0.98) 0%, #0d0010 100%);
+    text-align: center; padding: 32px;
+  }
+  #start-emoji { font-size: 64px; animation: floatBob 2.4s ease-in-out infinite; }
+  @keyframes floatBob {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-12px); }
+  }
+  #start-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(22px, 5vw, 40px);
+    color: rgba(255,230,240,0.95);
+    opacity: 0; animation: fadeInDown 1s ease 0.4s forwards;
+  }
+  #start-sub {
+    font-size: clamp(12px, 2vw, 15px);
+    color: rgba(255,180,210,0.55);
+    font-style: italic;
+    opacity: 0; animation: fadeInDown 0.8s ease 0.8s forwards;
+  }
+  #start-btn {
+    margin-top: 8px;
+    padding: 14px 40px;
+    border-radius: 40px;
+    border: 1px solid rgba(255,140,190,0.5);
+    background: rgba(255,80,130,0.15);
+    color: rgba(255,220,240,0.95);
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(15px, 2.5vw, 20px);
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    opacity: 0; animation: fadeInDown 0.8s ease 1.1s forwards;
+  }
+  #start-btn:hover {
+    background: rgba(255,80,130,0.3);
+    transform: scale(1.06);
+    box-shadow: 0 0 28px rgba(255,80,150,0.3);
+  }
+  #start-btn:active { transform: scale(0.97); }
+
+  /* ── Game screen ── */
+  #game-screen {
+    position: relative; z-index: 10;
+    height: 100vh; width: 100vw;
+    display: flex; flex-direction: column; align-items: center;
+  }
+
+  #game-title {
+    margin-top: 36px;
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(18px, 3vw, 28px);
+    color: rgba(255,220,240,0.9);
+    letter-spacing: 0.05em;
+    text-align: center;
+    opacity: 0;
+    animation: fadeInDown 1.2s ease 0.3s forwards;
+  }
+
+  #counter-bar {
+    margin-top: 16px;
+    display: flex; align-items: center; gap: 10px;
+    opacity: 0;
+    animation: fadeInDown 1s ease 0.8s forwards;
+  }
+
+  .heart-pip {
+    width: 22px; height: 22px;
+    font-size: 18px;
+    opacity: 0.3;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  .heart-pip.caught {
+    opacity: 1;
+    animation: pipPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  #canvas-wrap {
+    position: relative;
+    flex: 1;
+    width: 100%;
+    max-width: 600px;
+  }
+
+  canvas#game-canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+  }
+
+  /* ── Custom cursor ── */
+  #cursor {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    font-size: 20px;
+    transform: translate(-50%, -50%);
+    transition: transform 0.05s;
+  }
+
+  /* ── Falling hearts (DOM) ── */
+  .fall-heart {
+    position: fixed;
+    font-size: clamp(22px, 4vw, 36px);
+    pointer-events: none;
+    z-index: 20;
+    user-select: none;
+    filter: drop-shadow(0 0 6px rgba(255,100,150,0.7));
+    animation-name: fall;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+  }
+  @keyframes fall {
+    0%   { transform: translateY(0) rotate(0deg);   opacity: 1; }
+    80%  { opacity: 1; }
+    100% { transform: translateY(110vh) rotate(20deg); opacity: 0; }
+  }
+
+  /* ── Basket ── */
+  #basket {
+    position: fixed;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 30;
+    width: clamp(80px, 15vw, 130px);
+    display: flex; flex-direction: column; align-items: center;
+    pointer-events: none;
+    transition: left 0.05s linear;
+  }
+  #basket-body {
+    width: 100%;
+    height: clamp(44px, 8vw, 70px);
+    border: 3px solid rgba(255,180,210,0.8);
+    border-top: none;
+    border-radius: 0 0 40px 40px;
+    background: rgba(255,200,230,0.1);
+    backdrop-filter: blur(4px);
+    box-shadow: 0 0 16px rgba(255,100,160,0.3), inset 0 0 20px rgba(255,100,160,0.05);
+    position: relative;
+    overflow: hidden;
+  }
+  #basket-body::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.07), transparent);
+    border-radius: inherit;
+  }
+  #basket-rim {
+    width: 110%;
+    height: 10px;
+    background: rgba(255,180,210,0.6);
+    border-radius: 5px;
+    box-shadow: 0 0 8px rgba(255,100,160,0.5);
+  }
+
+  /* ── Catch burst ── */
+  .catch-burst {
+    position: fixed;
+    pointer-events: none;
+    z-index: 50;
+    font-size: 24px;
+    animation: burst 0.7s ease-out forwards;
+  }
+  @keyframes burst {
+    0%   { transform: translate(-50%,-50%) scale(0.5); opacity: 1; }
+    100% { transform: translate(-50%,-180%) scale(1.8); opacity: 0; }
+  }
+
+  /* ── Zoom into basket transition ── */
+  #zoom-overlay {
+    position: fixed; inset: 0;
+    z-index: 100;
+    display: none;
+    align-items: center; justify-content: center;
+    background: rgba(13,0,16,0);
+  }
+  #zoom-overlay.active { display: flex; }
+
+  #zoom-basket {
+    font-size: 80px;
+    animation: zoomBasket 1.4s cubic-bezier(0.22,1,0.36,1) forwards;
+  }
+  @keyframes zoomBasket {
+    0%   { transform: scale(1); opacity: 1; }
+    60%  { transform: scale(6); opacity: 1; }
+    100% { transform: scale(18); opacity: 0; }
+  }
+
+  /* ── Heart rise ── */
+  #heart-rise-screen {
+    position: fixed; inset: 0;
+    z-index: 110;
+    display: none;
+    align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at center, rgba(80,0,60,0.9) 0%, #0d0010 100%);
+  }
+  #heart-rise-screen.active { display: flex; }
+
+  #rising-heart {
+    font-size: 60px;
+    opacity: 0;
+    filter: drop-shadow(0 0 20px rgba(255,80,120,0.9));
+  }
+  #rising-heart.animate {
+    animation: riseAndGrow 1.6s cubic-bezier(0.34,1.3,0.64,1) forwards;
+  }
+  @keyframes riseAndGrow {
+    0%   { opacity: 0; transform: translateY(120px) scale(0.3); }
+    30%  { opacity: 1; }
+    70%  { transform: translateY(0) scale(1.4); }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+  }
+
+  /* ── Locket screen ── */
+  #locket-screen {
+    position: fixed; inset: 0;
+    z-index: 120;
+    display: none;
+    align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at center, rgba(60,0,50,0.95) 0%, #0d0010 100%);
+    perspective: 1200px;
+  }
+  #locket-screen.active { display: flex; }
+
+  #locket-container {
+    position: relative;
+    width: clamp(280px, 80vw, 560px);
+    height: clamp(200px, 55vw, 380px);
+    transform-style: preserve-3d;
+    opacity: 0;
+  }
+  #locket-container.open {
+    animation: locketAppear 0.6s ease forwards;
+  }
+  @keyframes locketAppear {
+    from { opacity: 0; transform: scale(0.6) rotateY(-10deg); }
+    to   { opacity: 1; transform: scale(1) rotateY(0deg); }
+  }
+
+  /* Locket halves */
+  .locket-half {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 50%;
+    background: linear-gradient(135deg, #2a0020 0%, #1a0015 100%);
+    border: 1px solid rgba(255,160,200,0.25);
+    overflow: hidden;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+  }
+  #locket-left {
+    left: 0;
+    border-radius: 20px 0 0 20px;
+    transform-origin: right center;
+    transform: rotateY(0deg);
+    border-right: none;
+  }
+  #locket-right {
+    right: 0;
+    border-radius: 0 20px 20px 0;
+    transform-origin: left center;
+    transform: rotateY(0deg);
+    border-left: 1px solid rgba(255,160,200,0.15);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: clamp(16px, 3vw, 28px);
+    text-align: center;
+  }
+
+  #locket-left.swing {
+    animation: swingLeft 1.2s cubic-bezier(0.22,1,0.36,1) 0.3s forwards;
+  }
+  #locket-right.swing {
+    animation: swingRight 1.2s cubic-bezier(0.22,1,0.36,1) 0.3s forwards;
+  }
+  @keyframes swingLeft {
+    from { transform: rotateY(0deg); }
+    to   { transform: rotateY(-35deg); box-shadow: -20px 0 40px rgba(0,0,0,0.6); }
+  }
+  @keyframes swingRight {
+    from { transform: rotateY(0deg); }
+    to   { transform: rotateY(35deg); box-shadow: 20px 0 40px rgba(0,0,0,0.6); }
+  }
+
+  /* Inner glow frame */
+  .locket-half::before {
+    content: '';
+    position: absolute; inset: 6px;
+    border: 1px solid rgba(255,160,200,0.2);
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* Image side */
+  #locket-img-wrap {
+    position: absolute; inset: 14px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(255,200,230,0.04);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #locket-img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.8s ease 1.6s;
+    border-radius: 12px;
+  }
+  #locket-img.loaded { opacity: 1; }
+
+  #img-placeholder {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 10px; color: rgba(255,180,210,0.4);
+    font-size: 13px; letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  #img-placeholder span { font-size: 32px; }
+
+  /* Text side */
+  #locket-eyebrow {
+    font-family: 'Lato', sans-serif;
+    font-size: clamp(9px, 1.5vw, 12px);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(255,160,200,0.6);
+    margin-bottom: 10px;
+    opacity: 0;
+  }
+  #locket-question {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(18px, 3.5vw, 30px);
+    color: rgba(255,230,240,0.95);
+    line-height: 1.3;
+    margin-bottom: 14px;
+    opacity: 0;
+  }
+  #locket-sub {
+    font-size: clamp(10px, 1.6vw, 13px);
+    color: rgba(255,180,210,0.55);
+    font-style: italic;
+    opacity: 0;
+    margin-bottom: 20px;
+  }
+
+  #locket-eyebrow.reveal { animation: fadeUp 0.7s ease 1.4s forwards; }
+  #locket-question.reveal { animation: fadeUp 0.8s ease 1.7s forwards; }
+  #locket-sub.reveal     { animation: fadeUp 0.7s ease 2.1s forwards; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Yes / No buttons */
+  #locket-buttons {
+    display: flex; gap: 12px;
+    opacity: 0;
+    animation-fill-mode: forwards;
+  }
+  #locket-buttons.reveal { animation: fadeUp 0.7s ease 2.4s forwards; }
+
+  .locket-btn {
+    padding: 8px 22px;
+    border-radius: 30px;
+    border: 1px solid rgba(255,160,200,0.4);
+    background: transparent;
+    color: rgba(255,210,230,0.9);
+    font-family: 'Lato', sans-serif;
+    font-size: clamp(11px, 1.8vw, 14px);
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  }
+  .locket-btn:hover { background: rgba(255,100,160,0.15); border-color: rgba(255,160,200,0.7); transform: scale(1.05); }
+
+  #btn-yes {
+    background: rgba(255,80,130,0.18);
+    border-color: rgba(255,120,170,0.6);
+  }
+  #btn-yes:hover { background: rgba(255,80,130,0.35); }
+
+  /* ── Answer screen ── */
+  #answer-screen {
+    position: fixed; inset: 0; z-index: 200;
+    display: none; align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px;
+    background: radial-gradient(ellipse at center, rgba(80,0,50,1) 0%, #0d0010 100%);
+    text-align: center; padding: 24px;
+  }
+  #answer-screen.active { display: flex; }
+  #answer-emoji { font-size: 64px; animation: bounceIn 0.8s cubic-bezier(0.34,1.56,0.64,1); }
+  #answer-text {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(22px, 5vw, 42px);
+    color: rgba(255,230,240,0.95);
+    animation: fadeInDown 0.9s ease 0.3s both;
+  }
+  #answer-sub {
+    font-size: clamp(13px, 2.5vw, 18px);
+    color: rgba(255,180,210,0.65);
+    font-style: italic;
+    animation: fadeInDown 0.8s ease 0.6s both;
+  }
+  @keyframes bounceIn {
+    from { transform: scale(0); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Night planner screen ── */
+  .flow-screen {
+    position: fixed; inset: 0; z-index: 210;
+    display: none; align-items: center; justify-content: center;
+    flex-direction: column; gap: 28px;
+    background: radial-gradient(ellipse at center, rgba(60,0,50,0.98) 0%, #0d0010 100%);
+    text-align: center; padding: 32px;
+  }
+  .flow-screen.active { display: flex; }
+
+  .flow-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(20px, 4vw, 34px);
+    color: rgba(255,230,240,0.95);
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.2s forwards;
+  }
+  .flow-sub {
+    font-size: clamp(12px, 2vw, 15px);
+    color: rgba(255,180,210,0.55);
+    font-style: italic;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.5s forwards;
+    margin-top: -16px;
+  }
+
+  .choice-row {
+    display: flex; gap: clamp(16px, 4vw, 32px);
+    flex-wrap: wrap; justify-content: center;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.7s forwards;
+  }
+
+  .choice-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,160,200,0.25);
+    border-radius: 20px;
+    padding: clamp(20px, 4vw, 36px) clamp(24px, 5vw, 48px);
+    cursor: pointer;
+    transition: background 0.25s, border-color 0.25s, transform 0.2s, box-shadow 0.25s;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    min-width: clamp(120px, 28vw, 190px);
+    backdrop-filter: blur(6px);
+  }
+  .choice-card:hover {
+    background: rgba(255,100,160,0.12);
+    border-color: rgba(255,160,200,0.6);
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 12px 40px rgba(255,80,150,0.2);
+  }
+  .choice-card:active { transform: translateY(-2px) scale(0.98); }
+
+  .choice-emoji { font-size: clamp(36px, 8vw, 60px); }
+  .choice-label {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(14px, 2.5vw, 20px);
+    color: rgba(255,220,240,0.9);
+  }
+  .choice-hint {
+    font-size: clamp(10px, 1.5vw, 12px);
+    color: rgba(255,160,200,0.5);
+    letter-spacing: 0.08em;
+  }
+
+  /* ── End card screen ── */
+  #end-screen {
+    position: fixed; inset: 0; z-index: 220;
+    display: none; align-items: center; justify-content: center;
+    flex-direction: column; gap: 0;
+    background: radial-gradient(ellipse at center, rgba(50,0,40,0.99) 0%, #0d0010 100%);
+    text-align: center; padding: 32px;
+    overflow-y: auto;
+  }
+  #end-screen.active { display: flex; }
+
+  #end-emoji {
+    font-size: clamp(48px,10vw,72px);
+    opacity: 0; margin-bottom: 16px;
+    animation: bounceIn 0.8s cubic-bezier(0.34,1.56,0.64,1) 0.2s forwards;
+  }
+  #end-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(20px, 4vw, 34px);
+    color: rgba(255,230,240,0.95);
+    margin-bottom: 14px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.7s forwards;
+  }
+  #end-body {
+    font-size: clamp(13px, 2vw, 17px);
+    color: rgba(255,200,225,0.75);
+    line-height: 1.7;
+    max-width: 520px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 1s forwards;
+    margin-bottom: 28px;
+  }
+  #end-time-box {
+    border: 1px solid rgba(255,160,200,0.35);
+    border-radius: 16px;
+    padding: 16px 32px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 1.3s forwards;
+    background: rgba(255,100,160,0.08);
+  }
+  #end-time-label {
+    font-size: clamp(10px, 1.5vw, 12px);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,160,200,0.5);
+    margin-bottom: 6px;
+  }
+  #end-time {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(22px, 4vw, 36px);
+    color: rgba(255,230,240,0.95);
+    margin-bottom: 4px;
+  }
+  #end-dress {
+    font-size: clamp(12px, 1.8vw, 14px);
+    color: rgba(255,180,210,0.6);
+    font-style: italic;
+  }
+
+  /* Confetti */
+  .confetti-piece {
+    position: fixed;
+    top: -10px;
+    width: 8px; height: 8px;
+    pointer-events: none; z-index: 201;
+    border-radius: 2px;
+    animation: confettiFall linear forwards;
+  }
+  @keyframes confettiFall {
+    0%   { transform: translateY(0) rotate(0deg);   opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  @keyframes pipPop {
+    0%   { transform: scale(0.5); }
+    60%  { transform: scale(1.4); }
+    100% { transform: scale(1); }
+  }
+
+  /* ── Particles from locket seam ── */
+  .seam-particle {
+    position: fixed;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: rgba(255,120,180,0.9);
+    pointer-events: none; z-index: 125;
+    animation: particleFly linear forwards;
+  }
+  @keyframes particleFly {
+    0%   { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stars"></div>
+<div id="cursor">🌸</div>
+
+<!-- ═══════════ START SCREEN ═══════════ -->
+<div id="start-screen">
+  <div id="start-emoji">💌</div>
+  <p id="start-title">Something special is waiting for you</p>
+  <p id="start-sub">tap to open</p>
+  <button id="start-btn" onclick="startGame()">Open 💕</button>
+</div>
+
+<!-- ═══════════ GAME SCREEN ═══════════ -->
+<div id="game-screen">
+  <p id="game-title">Catch the falling hearts 🌸</p>
+  <div id="counter-bar">
+    <!-- pips inserted by JS -->
+  </div>
+  <div id="canvas-wrap"></div>
+</div>
+
+<!-- ═══════════ BASKET ═══════════ -->
+<div id="basket">
+  <div id="basket-rim"></div>
+  <div id="basket-body"></div>
+</div>
+
+<!-- ═══════════ ZOOM OVERLAY ═══════════ -->
+<div id="zoom-overlay">
+  <div id="zoom-basket">🧺</div>
+</div>
+
+<!-- ═══════════ HEART RISE SCREEN ═══════════ -->
+<div id="heart-rise-screen">
+  <div id="rising-heart">💝</div>
+</div>
+
+<!-- ═══════════ LOCKET SCREEN ═══════════ -->
+<div id="locket-screen">
+  <div id="locket-container">
+    <!-- Left: image -->
+    <div class="locket-half" id="locket-left">
+      <div id="locket-img-wrap">
+        <img id="locket-img" src="" alt="Us">
+        <div id="img-placeholder">
+          <span>📷</span>
+          your photo here
+        </div>
+      </div>
+    </div>
+    <!-- Right: promposal text -->
+    <div class="locket-half" id="locket-right">
+      <p id="locket-eyebrow">a question for you</p>
+      <p id="locket-question">Will you go to prom with me?</p>
+      <p id="locket-sub">You make every moment magic ✨</p>
+      <div id="locket-buttons">
+        <button class="locket-btn" id="btn-yes"  onclick="answer(true)">Of course 💕</button>
+        <button class="locket-btn" id="btn-no"   onclick="answer(false)">Ask again…</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ NIGHT PLANNER ═══════════ -->
+<div id="planner-screen" class="flow-screen">
+  <p class="flow-title">Now let's plan our night 🌙</p>
+  <p class="flow-sub">you get to choose</p>
+  <div class="choice-row">
+    <div class="choice-card" onclick="pickActivity('movies')">
+      <span class="choice-emoji">🎬</span>
+      <span class="choice-label">Movie Marathon</span>
+      <span class="choice-hint">snacks included</span>
+    </div>
+    <div class="choice-card" onclick="pickActivity('games')">
+      <span class="choice-emoji">🎮</span>
+      <span class="choice-label">Video Games</span>
+      <span class="choice-hint">prepare to lose</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ GAME PICKER ═══════════ -->
+<div id="game-picker-screen" class="flow-screen">
+  <p class="flow-title">Which game? 🎮</p>
+  <p class="flow-sub">choose wisely</p>
+  <div class="choice-row">
+    <div class="choice-card" onclick="pickGame('stardew')">
+      <span class="choice-emoji">🌱</span>
+      <span class="choice-label">Stardew Valley</span>
+      <span class="choice-hint">cozy farm life</span>
+    </div>
+    <div class="choice-card" onclick="pickGame('minecraft')">
+      <span class="choice-emoji">⛏️</span>
+      <span class="choice-label">Minecraft</span>
+      <span class="choice-hint">build something epic</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ END CARD ═══════════ -->
+<div id="end-screen">
+  <div id="end-emoji">🎉</div>
+  <p id="end-title"></p>
+  <p id="end-body"></p>
+  <div id="end-time-box">
+    <p id="end-time-label">it starts at</p>
+    <p id="end-time">7:00 PM ✨</p>
+    <p id="end-dress">get dressed — you're going to look amazing 💕</p>
+  </div>
+</div>
+<div id="answer-screen">
+  <div id="answer-emoji">🎉</div>
+  <p  id="answer-text">She said YES!</p>
+  <p  id="answer-sub">This is going to be the best night ever 💃🌟</p>
+</div>
+
+<script>
+// ────────────────────────────────────────────────────────
+//  CONFIG  — edit these
+// ────────────────────────────────────────────────────────
+const TOTAL_HEARTS   = 10;        // hearts to catch to win
+const SPAWN_INTERVAL = 900;       // ms between spawns
+const FALL_SPEED_MIN = 5000;      // ms to fall (slower = easier)
+const FALL_SPEED_MAX = 8000;
+const PROMPOSAL_TEXT = "Will you go to prom with me?";
+const PROMPOSAL_SUB  = "You make every moment magic ✨";
+const YES_RESPONSE   = "She said YES! 🎉";
+const YES_SUB        = "This is going to be the best night ever 💃🌟";
+const NO_RESPONSE    = "…just kidding, of course you will 😘";
+const PHOTO_SRC      = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxITEhUTExMVFhUXFRUYFxgYGBcXFxgXFxgaFxUXFxcYHSggGBolHRcXITEhJSkrLi4uFx8zODMtNygtLisBCgoKDg0OGxAQGi0lICUtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLf/AABEIANwA3AMBIgACEQEDEQH/xAAcAAABBQEBAQAAAAAAAAAAAAAEAQIDBQYABwj/xAA5EAABAwMDAgMHAgUDBQEAAAABAAIDBBEhBTFBElEGYXETIoGRobHwMtEHFELB4VJichUjQ4LxM//EABoBAAMBAQEBAAAAAAAAAAAAAAECAwAEBQb/xAAlEQADAQACAQQCAgMAAAAAAAAAAQIRAyESBDFBUQUTInEUI6H/2gAMAwEAAhEDEQA/AN5/JObhzUrqJjsXHo7b5rXFg7IeWgY7hR8WYxVZ4bFiRj0yFSVGlyt4uPJejmgc39Lvgh5mD+tnxGErQ6to80ce6QrcV2jRP2sT8is7WaI5p936pcKLk+ymITmuIUskThuFEQh2hsTF9qEoeo3BRkLBz4CC9d1ofrKXrWMlgT1pOpQh6QuWDpN1JC9RXSdSwSQyJpeoy5IHLGJepJ1KIlJ1rGJSU1NacJQVjDki5NcVjDwVxcmApwaSsA5ISkKabrBPc1y5cuo4zkjmg7hKuWMAVWmNdtgqmnppWbi4WoSWSOPoxh5omOwRYqsq9Ivlv+V6DUadG7cfJVVVoJ3Y5K5YU8PPqihc3dQPb7o9SP7rY1VHI24e2/w/uqmpp2OY8WsQQc/IpGis2zPEJllNWRFljwQoWuSlE9OGEocuN0hWGFukJSJt0DC3XJFG5yxiRNeUwuXXWMdJwPJRki9iVLMfePlhUesU8vtY5GXIBsQigNl4W4UTmptz9FJ0oGGW9VNHKRyoyFwKIMFeTe900OPcrnFcAsE99XLly6jkOXLlyxjly4lRxztOzgfQhbTEi5ddcsYRzQdxdVmoaLG+5AsSCDbm6tEyWUN3KFJZ2E8z1bS3Na0HjGfInKr4tNJIwbYPwW+1KRjjxzuq90jGjHmuWqOiF0Zp2iOsODcj8+ijGi7XdlWdZVXJzZBNqCXeVknkWUAb9MPUBwnO0jNuoWx8+UY45vdPpAXnyQ8mHxQxuigg33vhVlXpLuqzcrVSbFCMbYOJTaxUjLVNE5pNxhDMbkeZC01dllj2yqqSFpIsbWFrfRFUFw/grSbknzSBWzdNaW4Oyhn0/pNkdFawrwFK2EopkYCksiACEJSewRRTSsYBlbZRFyLqm4wg3R9wfqEAH0CuXLl1nIcuXLiVjAOtwPfC9rDZxC80/l5Yncg34J3XrN1Q+IaIO98DI38+yjyzvZbivOmUuk+IJ2Gz/fbtnceYPK19NWseLgrDddjslfVkCwNlNW5HrjT9jZ12otZ5n7LKavXvcb3QX827lRSVAPPqhVugzxqSJtSbjKIdL5oIgA+Se12AkSKN6D1L7p1GL59QnxwFxsFZxUgDRhDB/JZhXTOAH580Zp77i/5hV9a0l9gFYUzOlg9MrIz9h0s6CNTvlD1lVnfHCqKisPojo8yH1NVvlVrqzKAlq0I6Uk4SMolhooK7zRkdVjOVnKVyKE3+5YzhMuvZtO2EySG3n6KqZN5qQ1TuCmVE3wlh/KPPGF38pYXcVX/9Ze3Fwo3a27bFkHVAXEWLngDA+KAfWtvuT8ENJO6TLjjskMF9kM0d5KPYfFHiynoWtMxJc6/SxuXG258h5rA138YXkWhpgM7vdcW5w3lZLx74uZqEzHNiMfQ0tuXXJBzkDAsb/NZe67zr9H+M4vBVyrv609Aq/wCK9cXXaIWN4b0l31J3WT1LX6mod1TTvcSf9RDR6NGAqh5vynMGMrHocfpuCK/jCL7RfEtVTPD4pnb3LXOLmu8iCvf6atbUUrJhtJGHDyuNl8yRr2LwP41hlp4qVx6JmM6c4Dg3YtOxNuPVLXsef+W9Mmp5In+8D61pBOOVntYrhHg7rUVpvzcrzjxVA4O6n3AcHFo7gG1/moJaeT5YiGfxGL/rt6Kai1/qx1A/dYaofc42QreoG4JHmqeIvkz12CuuBc3+6Mo5L4Xn/hrWuoiN+HDAPf8Ayt7ojc27bJGsH3VqL7Taf3ijamOydQMwurnYstnQibbM9X/r930SVExa3KmeN+91VavKOOymzqlb0VVXNckqqqZjlGSlV1Qy5QRZroHc/Kc+VrRdxsFDVSBgufgsvqWpFxVJnyJ1alF/Ua5w0IePXCDlZgFx5XEWNrqn6kR/yGb/AE/VWuG6topQV55RlzCD35Wy02puFG4z2OjjvyQfPCMlCQwe95KxABTGx2UxmE08dh+bJ6la1ROTqdOXkes84eCnA3U8zm9XSCHeYSdHZdh9Nx+Nryh6iMNTgFxNk32hWH6XuPcCQrHw5A81MXSLkPafQAgkm3FlVe1816boVA2GBmB1loLncknNvQJLpJHN6vnmI+2+i71PUQ0YWa1Ctgknc+fMLYnNYM5LYyWA22u9Fa1GXxnp3WJqpeqN0br3/ZTg+a5J6M82QWyUrpmi1gUM7BsVwVcJ6OjkLXBw3BBC9x8MM6o2O7tH1Xjejaa6eVrADYuAJHA5Xv2gUQjjHpYfBJYZZZRMsLIGqkR0zrBU1bN2SseFrBJ+SqSvN7qxqJ+LoGocLZUmdcopZGqGSJGSeSHelLGS8STWWXaLlajxHCXXI3Dll3Ag2XVx+xwc++QQxgAN3DYWG6iqDdxsoiuunIl5o0mMgEXsQfutHQNBsWmw7LLULXBnm7YLXaNTkNF+Aoch1+nLaKS2CiuthQJnUL3nhQOll1FILJllXUU2cqyCpDOXlnHp52/T5IiC7Iva44v/AJXEq+roHOaek37g5+I7LPyYNjuuia3o9H8bypS+NjS8pOpNumucnO92T0cRfIxg3c5o+ZXqc974Ix+3KwfhGiLpOvItgHkX36O7iMeV1uWUTrD+gD+kDP8A7OO5XNyXrw8j1PMrvF8EQlPKBrdGjlyPdKt/YBNMCmnhFpMyk/gzrP8A+g+SIoPAsYP/AHHF/wBAtZSQkq7pqQDcKqpsjUSiv0jQGMADWho7AfdaiNlhYIcDsiCbDKZIkwStfuqapcFPX1O+VSzTk8pKZbjTAquY3wUDLJ3KdM/coF8ud1NnXKJmvTmnhCgp0TsoDENbp/Vmyo6zw+1+dj6LYNyFC+n5CZU0LUKvcwEvhmYbWKlpfDMl7ust42AKRsYT/tol/jwZyk0gMycn6Kwc6w3srJ7AgJo7HIKm22WUpdIH6k7rPom2ynDdKYmjNiEeybCBYB2RAWBSTXZV0tG0tuCQ7POPzZRHThLgNPUDY3tb1B3TaSt6JHRm5AO/rgK3pJQJB02uXfTn0U/5KkmeFNXNeLKyg8NtfK9jsdIG3LiLtV3UfwycxzS2Zrm4JDgQb8jzCtvDbA6oebf+Zx9ehuPqFNrviyz3MhaHdOC536b/AO229v7Kk8jSes659RUy066CdM0ZsQ2F+LYA9FLK0d1U6Z4iLrRyCzjezh+k/DhWYPUU0uWug8dJrZFFObounoQc2T6WKxCu6WAcKikd3gJHRhovZS2wjJhZDMaOU+CeWisaENqVTYWCdNMG3Koa+subX5WbGmdYDVVBvdVstTcKepl+arJpQMcqTOyJGVMqrHyIiolCrXyIYVDYZLoiFVDagNIuVawScrNA6LBj0+4QwdhPbKEoQhrlxcEMZFG99ltMTvehZSh5pyoDMe91sBo6ZyWEcqAylSRSXKOC6HNRLXoRhRLbJQvfgxs+pt/muoH3btuTyL5WidTvD2lhbcEkkm4tvn1CzA00/pPvDvaxB8laU8lhYXyA1x7hos36fZPy8kr29zyOTlxPPc0FPO4QlwOSZHXbjc2+WVWU5FlbUbAYmNP9TSPm4X/uVUVMDDI72TiYw4hpO5tzhcHujirWiRxButrodT7SFrudj6jCw0lMQLg+qJ0rWJ4wGMc0tF/dI7nurcNqX2Pw34t6eoUDL7lXsbgAsLoHiNrnhkg6HE4ufdPYArZyk2XfNKlqOuWqFeblQyOAuoZZDZQud3RHIa1hcMLJ6zHI29lsC8WVXqcAcErQ83hkIJS5tzgjdVVTP7y0T4Q3q+KxupTWekw7IvUM1Ct6QVTsr3k/FE1T+pdTU1ymWIzbZJTQukcCdgtHBgKCmLQE90qSno66CwQmSOI2UMbypfa8JMG04FDTylTGThCVrvgikBsZJUkISWrUb5lGnSI6TCe6JiehWWRLCswoNgf3R8TsKrhcEax3ZIyi7MppVY8lwcbndWLM3tsBdZ+lDosuxcbDKs6DUHvPSyM553PyKpfAqenkvilvTfaDGHMYMdQY7p/5C6zVJJa7TuCR8eVc+H4nPaGXc1wc4EjDg23veh81H4q0P2DhJE0+zIzYYaRYZ9f3XH47H9MhcbHXwBvnAS6JpskwkdFlzCLt2uHf6T3xsqbrNjnaxXovgHT3R05eRmR3UP8Ahb3f7/Nbi4/J4xOKPJ4zMTMe09L2Ob6gjbsfgtj4R1pz2OhfksF2u3uzzN9wfotCynJ/VYjtYH7qvqNGhDxJHeN45bsQdwWncLojhcVqZeOLwephJqFG6Upz5WDlQSVbdr5XQW0c6ZQSOJC72g3Kgnqht2WNpR68LXIP56Lz/UnFzvitrqsoySfRYzUbdSGFotkLKZzs8IuNtuFJB+lRm290Giitsna4qRr0KXhKJUmFEw6OoUjKwdkEJRspWkIYMmHNqmlMnLXAqBjApfZtI3shg2sqZiQbAA/AJvWew+SJnpLd/hlQBnmnJDmu8lM0jzCYyNERsQYyHRx5R8UeOVFC1ENcUjY6RWVepU7yI22cb7ht/qpaWlne8RxQj1uB8wNgthpH8PA2xkkNxbDAGj0vutdQaFFC3pYCOSb5J8yuTm/JRKf6+3/w5f177nn9HTyU9V7N1ustjPu7EmzSPMea2skQPu7jsc3UlbpkZd1loLrWuRc2HmgJYSDgkLxPUetvkzG19/2W4uJTpQax4QaXiSMWHU0uZwRf3rdsLYUdYx1gB0kDDewHbuAqSWtewgHI891K8H9Wx3XR6f8AI8nFnn2jV6ae2ujQiZAVRT6ao6mA88+qSRlwvpIpUk0cDWPCsdGSdyELNExhy5T17XtGAsrqdRJ+fn5dMY0RnF1W1FUMklZ3/qRAyTfZVtRqh+90TJFnqdTe6ydZN72fRPqq9zjhAyAk3RSHTLWjnxvhSTy8fZUrXkbKUVPqhgyoNbL5pWlBh909r1sG8gxjySpm3QMciJhnslaHmgljjfdTe34ULZOU8nq8ikKJnBxvcEg9lO2Yn9QB9QoWZwcKeNp5QYyJWNacgkfUKX2ZCiaFI15SjD2IgNKijAPkjY22GyDCetsIBTy4Kp1Gllcfcf0/C6gZpEvM8h+QXy6t+xPxX2H1jgqqdw5U79KA3c8+riq6o05t9r+pK5qx12VnACtmaSGgi5I89lZO/SFW1FC0ZAsQj4ZOpgPzTXnisHC9KHubbuKJJ/Pz8yhtOf8A9u3YldISV9h6Vf6Z/pHl8z/myZwB4VPqGktcrEv6VB7cq5IzlV4XFrnO6xddocgeRwvWnTBwtdUWoQDhEZNnnzNJtuAo6igDVqKtgDvgqPUnAnCwyZTyUwQkkIR7pLhQkIjAPsyE+EIn2Sc2FbTJCMZdT9NlwbZIClZRIlY7YH8KIazg4Q8bbI6DItzx+yRlZRIyxwfgf3TwOnBUQF8cqaKUfpdtweyUdCrhImTNLT+ZTobO4QDoTAblWke3KrYgj4nYGLpWMev3CRzgq2qbNa7CM7KucKz/AFNHwK+Y/a/omo35LeqkCqal6Run1B3lt6N/dQVGjO5lefoPoue5162VnEBzygkMBHU42AuBko2DRKhmLtIPNyFVSaW0XNrnzz8Vq9Iq3PhHUblt239NvovT/H8HBzbFbvuT57qFqB46ExtAJudzbZQSXCtHIeVfRRKlKV8HmunT1lVIOUPLsrGdoyq2oGEwAcyEIeeXqNkS1lwVBJHv3WGRT1lODeyoqyjIWjlYRfuqqVpKJkZp1MbproVcTRm+ygdHfhYomVojTwNsIh8JCRsRusMmDnKcyNFiEJr47JWPJHZK19klil6UpUIJ6hcbjf8AdI33vJ33/wApsTSDcKd0f9Q/+JRhad/9D8j7KT2HTtkcFOjIcPMfVTRG2DsgwpD4EZCcIfot6Jw/MpGOetaNVCWCKQZDo2n5hFXCxH8P695a+IkdLOnpHa97/ZX9VUOGQeF876qv1cjnPklE6i3cQq6rkVDUazKCRjHl/lDs1GSS1yBe+wXPyKrRWYwLq5wMq40JzRCCD3J9b7fZUbqNtgcknubqx8Pty8cY/uu38VUxzeP2T9StgsZnkoWVv0RkmMIZfTnmgMoQU7FZ1J/Pz0Qjsj4LBK+N1sIacm++/KlnQ8bvetwsFCO6bWdg/QoaSkaTixRNQwKCEb/FAwFPSDhBTUpHHx4VpqLiNsfhVUZCeUTETIhz5oeSAcKcjc+qJijGMIDroDigFr89kPPHmytKhgttsgZxz+cJR97BWxJrolMpGtFvgUr6OiXpC1mERB24SRBSgfnokKJDH01jcKQMvnkKRuxSXWMh0MtscKYxHjZQuxlExbIMJ//Z";        // leave empty until you have a photo; replace with image URL or base64
+
+// ────────────────────────────────────────────────────────
+// ── Audio Engine (Web Audio API — no files needed) ──
+// ────────────────────────────────────────────────────────
+let audioCtx = null;
+
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playTone({ freq = 440, type = 'sine', vol = 0.18, attack = 0.01, decay = 0.3, startTime = 0 }) {
+  const ctx = getAudio();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
+  gain.gain.setValueAtTime(0, ctx.currentTime + startTime);
+  gain.gain.linearRampToValueAtTime(vol, ctx.currentTime + startTime + attack);
+  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + startTime + attack + decay);
+  osc.start(ctx.currentTime + startTime);
+  osc.stop(ctx.currentTime + startTime + attack + decay + 0.05);
+}
+
+// punchy "catch" ding — rising pitch per heart + harmonic layer
+function sfxCatch(catchCount) {
+  const ctx = getAudio();
+  const notes = [523, 587, 659, 698, 784, 880, 988, 1047, 1175, 1319];
+  const freq = notes[Math.min(catchCount - 1, notes.length - 1)];
+  // fundamental
+  playTone({ freq, type: 'sine', vol: 0.28, attack: 0.003, decay: 0.22 });
+  // octave shimmer on top
+  playTone({ freq: freq * 2, type: 'sine', vol: 0.1, attack: 0.005, decay: 0.15 });
+  // tiny thump body
+  const osc2 = ctx.createOscillator();
+  const g2   = ctx.createGain();
+  osc2.connect(g2); g2.connect(ctx.destination);
+  osc2.type = 'triangle';
+  osc2.frequency.setValueAtTime(freq * 0.5, ctx.currentTime);
+  osc2.frequency.exponentialRampToValueAtTime(freq * 0.25, ctx.currentTime + 0.06);
+  g2.gain.setValueAtTime(0.18, ctx.currentTime);
+  g2.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.08);
+  osc2.start(ctx.currentTime);
+  osc2.stop(ctx.currentTime + 0.1);
+}
+
+// sparkly ascending arpeggio for winning
+function sfxWin() {
+  const chord = [523, 659, 784, 1047, 1319];
+  chord.forEach((f, i) => playTone({ freq: f, type: 'sine', vol: 0.12, attack: 0.01, decay: 0.5, startTime: i * 0.1 }));
+}
+
+// gentle whoosh — filtered noise sweep
+function sfxWhoosh() {
+  const ctx = getAudio();
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 0.6, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(400, ctx.currentTime);
+  filter.frequency.linearRampToValueAtTime(1200, ctx.currentTime + 0.6);
+  filter.Q.value = 0.8;
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.08, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.6);
+  src.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  src.start();
+  src.stop(ctx.currentTime + 0.65);
+}
+
+// heart pop — bubbly pitch-drop before locket reveal
+function sfxHeartPop() {
+  const ctx = getAudio();
+  // bubble pop: fast sine sweep from high to low
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(1200, ctx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.18);
+  gain.gain.setValueAtTime(0.32, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22);
+  osc.start(ctx.currentTime);
+  osc.stop(ctx.currentTime + 0.25);
+  // second harmonic layer — airy sparkle
+  playTone({ freq: 1800, type: 'sine', vol: 0.12, attack: 0.005, decay: 0.18 });
+  // low thump underneath for weight
+  const osc3 = ctx.createOscillator();
+  const g3   = ctx.createGain();
+  osc3.connect(g3); g3.connect(ctx.destination);
+  osc3.type = 'triangle';
+  osc3.frequency.setValueAtTime(160, ctx.currentTime);
+  osc3.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 0.12);
+  g3.gain.setValueAtTime(0.22, ctx.currentTime);
+  g3.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.15);
+  osc3.start(ctx.currentTime);
+  osc3.stop(ctx.currentTime + 0.18);
+}
+
+// warm heart-rise shimmer
+function sfxHeartRise() {
+  [523, 659, 784].forEach((f, i) =>
+    playTone({ freq: f * 2, type: 'sine', vol: 0.1, attack: 0.08, decay: 0.9, startTime: i * 0.18 })
+  );
+}
+
+// locket open — warm low chord bloom
+function sfxLocketOpen() {
+  [261, 329, 392].forEach((f, i) =>
+    playTone({ freq: f, type: 'sine', vol: 0.09, attack: 0.05, decay: 1.1, startTime: 0.3 + i * 0.07 })
+  );
+}
+
+// big celebratory fanfare for YES — real brass + drums
+function sfxYes() {
+  const ctx = getAudio();
+  const now = ctx.currentTime;
+
+  function brass(freq, startTime, duration, vol = 0.18) {
+    const osc  = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+    osc.type  = 'sawtooth';
+    osc2.type = 'square';
+    osc.frequency.setValueAtTime(freq, now + startTime);
+    osc2.frequency.setValueAtTime(freq * 1.005, now + startTime); // slight detune = richness
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1800, now + startTime);
+    filter.frequency.linearRampToValueAtTime(2800, now + startTime + 0.05);
+    osc.connect(filter); osc2.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+    gain.gain.setValueAtTime(0, now + startTime);
+    gain.gain.linearRampToValueAtTime(vol, now + startTime + 0.03);
+    gain.gain.setValueAtTime(vol, now + startTime + duration - 0.06);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + startTime + duration);
+    osc.start(now + startTime);  osc.stop(now + startTime + duration + 0.05);
+    osc2.start(now + startTime); osc2.stop(now + startTime + duration + 0.05);
+  }
+
+  function drum(startTime, vol = 0.35) {
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(180, now + startTime);
+    osc.frequency.exponentialRampToValueAtTime(40, now + startTime + 0.12);
+    gain.gain.setValueAtTime(vol, now + startTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + startTime + 0.18);
+    osc.start(now + startTime); osc.stop(now + startTime + 0.2);
+  }
+
+  function snare(startTime, vol = 0.18) {
+    const buf  = ctx.createBuffer(1, ctx.sampleRate * 0.15, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 2);
+    const src    = ctx.createBufferSource();
+    const filter = ctx.createBiquadFilter();
+    const gain   = ctx.createGain();
+    src.buffer = buf;
+    filter.type = 'bandpass'; filter.frequency.value = 1800; filter.Q.value = 0.7;
+    src.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+    gain.gain.setValueAtTime(vol, now + startTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + startTime + 0.14);
+    src.start(now + startTime);
+  }
+
+  function shimmer(startTime) {
+    [2093, 2637, 3136].forEach((f, i) =>
+      playTone({ freq: f, type: 'sine', vol: 0.06, attack: 0.01, decay: 0.4, startTime: startTime + i * 0.04 })
+    );
+  }
+
+  // ── Fanfare melody: ta-ta-TAAA  ta-ta-ta-TAAA ──
+  // Bar 1 — short stabs
+  brass(523, 0.00, 0.12);                        // C
+  brass(659, 0.14, 0.12);                        // E
+  brass(784, 0.28, 0.32);                        // G — held
+  drum(0.00); snare(0.14); drum(0.28);
+
+  // Bar 2 — ascending run
+  brass(784, 0.70, 0.10);                        // G
+  brass(880, 0.82, 0.10);                        // A
+  brass(988, 0.94, 0.10);                        // B
+  brass(1047, 1.06, 0.45);                       // C high — held longer
+  drum(0.70); snare(0.94);
+
+  // Big final chord — all voices together
+  brass(523,  1.62, 0.9, 0.14);                  // C
+  brass(659,  1.62, 0.9, 0.12);                  // E
+  brass(784,  1.62, 0.9, 0.12);                  // G
+  brass(1047, 1.62, 0.9, 0.10);                  // C high
+  drum(1.62); snare(1.68); drum(1.78); snare(1.88);
+  shimmer(1.65);
+}
+
+// soft chime for picking a choice card
+function sfxChoose(variant = 0) {
+  const sets = [[392, 523, 659], [440, 554, 740]];
+  const notes = sets[variant % sets.length];
+  notes.forEach((f, i) => playTone({ freq: f, type: 'sine', vol: 0.11, attack: 0.01, decay: 0.5, startTime: i * 0.1 }));
+}
+
+// warm final chord for end card
+function sfxEnd() {
+  [261, 329, 392, 523].forEach((f, i) =>
+    playTone({ freq: f, type: 'sine', vol: 0.1, attack: 0.04, decay: 1.6, startTime: i * 0.06 })
+  );
+}
+
+// ────────────────────────────────────────────────────────
+const heartTypes = ["💕","💖","💗","💓","💝","💞","❤️","🩷"];
+let basketX = window.innerWidth / 2;
+let caught   = 0;
+let gameOver = false;
+let pips     = [];
+
+// ── Cursor follow ──
+document.addEventListener('mousemove', e => {
+  const cur = document.getElementById('cursor');
+  cur.style.left = e.clientX + 'px';
+  cur.style.top  = e.clientY + 'px';
+  if (!gameOver) moveBasket(e.clientX);
+});
+document.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const t = e.touches[0];
+  if (!gameOver) moveBasket(t.clientX);
+}, { passive: false });
+
+function moveBasket(x) {
+  basketX = x;
+  const bw = document.getElementById('basket').offsetWidth;
+  const clamped = Math.max(bw/2, Math.min(window.innerWidth - bw/2, x));
+  document.getElementById('basket').style.left = clamped + 'px';
+  document.getElementById('basket').style.transform = 'translateX(-50%)';
+}
+
+// ── Build pips ──
+function buildPips() {
+  const bar = document.getElementById('counter-bar');
+  bar.innerHTML = '';
+  pips = [];
+  for (let i = 0; i < TOTAL_HEARTS; i++) {
+    const pip = document.createElement('span');
+    pip.className = 'heart-pip';
+    pip.textContent = '💗';
+    bar.appendChild(pip);
+    pips.push(pip);
+  }
+}
+buildPips();
+
+// ── Spawn hearts ──
+function spawnHeart() {
+  if (gameOver) return;
+  const el   = document.createElement('div');
+  el.className = 'fall-heart';
+  const emoji = heartTypes[Math.floor(Math.random() * heartTypes.length)];
+  el.textContent = emoji;
+  const xPct = 5 + Math.random() * 90;
+  const dur  = FALL_SPEED_MIN + Math.random() * (FALL_SPEED_MAX - FALL_SPEED_MIN);
+  el.style.left = xPct + 'vw';
+  el.style.top  = '-50px';
+  el.style.animationDuration = dur + 'ms';
+  document.body.appendChild(el);
+
+  // collision check loop
+  const tick = setInterval(() => {
+    if (gameOver) { clearInterval(tick); el.remove(); return; }
+    const rect = el.getBoundingClientRect();
+    const basket = document.getElementById('basket').getBoundingClientRect();
+    const catchZone = {
+      left:   basket.left   - 10,
+      right:  basket.right  + 10,
+      top:    basket.top    - 10,
+      bottom: basket.bottom + 20
+    };
+    if (
+      rect.bottom >= catchZone.top && rect.bottom <= catchZone.bottom &&
+      rect.left   >= catchZone.left && rect.right  <= catchZone.right + 40
+    ) {
+      clearInterval(tick);
+      el.remove();
+      registerCatch(rect.left + rect.width/2, rect.top);
+    }
+    // remove if off screen
+    if (rect.top > window.innerHeight + 60) { clearInterval(tick); el.remove(); }
+  }, 30);
+}
+
+let spawnTimer = null;
+
+function startGame() {
+  // This click is a real user gesture — AudioContext will unlock cleanly from here
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  // Play a silent buffer to fully unlock on all browsers including Safari
+  const silentBuf = audioCtx.createBuffer(1, 1, 22050);
+  const silentSrc = audioCtx.createBufferSource();
+  silentSrc.buffer = silentBuf;
+  silentSrc.connect(audioCtx.destination);
+  silentSrc.start(0);
+
+  // Hide start screen, show game
+  document.getElementById('start-screen').style.display = 'none';
+  spawnTimer = setInterval(spawnHeart, SPAWN_INTERVAL);
+}
+
+function registerCatch(x, y) {
+  if (caught >= TOTAL_HEARTS) return;
+  caught++;
+
+  // sound
+  sfxCatch(caught);
+
+  // light up pip
+  if (pips[caught-1]) {
+    pips[caught-1].classList.add('caught');
+  }
+
+  // burst particle
+  const burst = document.createElement('div');
+  burst.className = 'catch-burst';
+  burst.textContent = '💖';
+  burst.style.left = x + 'px';
+  burst.style.top  = y + 'px';
+  document.body.appendChild(burst);
+  setTimeout(() => burst.remove(), 800);
+
+  if (caught >= TOTAL_HEARTS) triggerWin();
+}
+
+// ── Win sequence ──
+function triggerWin() {
+  gameOver = true;
+  clearInterval(spawnTimer);
+  sfxWin();
+
+  // remove any lingering hearts after short delay
+  setTimeout(() => {
+    document.querySelectorAll('.fall-heart').forEach(h => h.remove());
+  }, 300);
+
+  setTimeout(() => {
+    // 1. show zoom overlay
+    const zo = document.getElementById('zoom-overlay');
+    zo.classList.add('active');
+    zo.style.background = 'rgba(13,0,16,0)';
+    sfxWhoosh();
+
+    // fade background to black during zoom
+    let alpha = 0;
+    const darken = setInterval(() => {
+      alpha = Math.min(1, alpha + 0.04);
+      zo.style.background = `rgba(13,0,16,${alpha})`;
+      if (alpha >= 1) clearInterval(darken);
+    }, 30);
+
+    // 2. after zoom animation — show rising heart
+    setTimeout(() => {
+      zo.classList.remove('active');
+      const hrs = document.getElementById('heart-rise-screen');
+      hrs.classList.add('active');
+      const rh  = document.getElementById('rising-heart');
+      setTimeout(() => { rh.classList.add('animate'); sfxHeartPop(); sfxHeartRise(); }, 50);
+
+      // 3. after heart rises — show locket
+      setTimeout(() => {
+        spawnSeamParticles();
+        hrs.classList.remove('active');
+        showLocket();
+      }, 2000);
+    }, 1600);
+  }, 400);
+}
+
+// ── Locket ──
+function showLocket() {
+  // set photo if provided
+  if (PHOTO_SRC) {
+    const img = document.getElementById('locket-img');
+    const ph  = document.getElementById('img-placeholder');
+    img.src = PHOTO_SRC;
+    img.onload = () => { img.classList.add('loaded'); ph.style.display = 'none'; };
+  }
+
+  document.getElementById('locket-question').textContent = PROMPOSAL_TEXT;
+  document.getElementById('locket-sub').textContent      = PROMPOSAL_SUB;
+
+  const ls = document.getElementById('locket-screen');
+  ls.classList.add('active');
+
+  const lc = document.getElementById('locket-container');
+  lc.classList.add('open');
+
+  setTimeout(() => {
+    sfxLocketOpen();
+    document.getElementById('locket-left').classList.add('swing');
+    document.getElementById('locket-right').classList.add('swing');
+    document.getElementById('locket-eyebrow').classList.add('reveal');
+    document.getElementById('locket-question').classList.add('reveal');
+    document.getElementById('locket-sub').classList.add('reveal');
+    document.getElementById('locket-buttons').classList.add('reveal');
+  }, 700);
+}
+
+// ── Seam particles ──
+function spawnSeamParticles() {
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight / 2;
+  const colors = ['#ff6bac','#ff9de2','#ffb3d1','#ffe0f0','#ff4488'];
+  for (let i = 0; i < 24; i++) {
+    const p = document.createElement('div');
+    p.className = 'seam-particle';
+    p.style.left = cx + 'px';
+    p.style.top  = cy + 'px';
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    const angle = (Math.random() * 360) * Math.PI / 180;
+    const dist  = 40 + Math.random() * 120;
+    const dur   = 0.5 + Math.random() * 0.6;
+    p.style.animationDuration = dur + 's';
+    p.style.animationTimingFunction = 'cubic-bezier(0.22,1,0.36,1)';
+    const tx = Math.cos(angle) * dist;
+    const ty = Math.sin(angle) * dist;
+    p.style.setProperty('--tx', tx + 'px');
+    p.style.setProperty('--ty', ty + 'px');
+    p.style.animation = `particleFly ${dur}s cubic-bezier(0.22,1,0.36,1) forwards`;
+    p.style.transform = `translate(${tx}px, ${ty}px)`;
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), dur * 1000 + 100);
+  }
+}
+
+// ── Answer ──
+function answer(yes) {
+  document.getElementById('locket-screen').classList.remove('active');
+  const as = document.getElementById('answer-screen');
+
+  if (yes) {
+    as.classList.add('active');
+    document.getElementById('answer-emoji').textContent = '🎉';
+    document.getElementById('answer-text').textContent  = YES_RESPONSE;
+    document.getElementById('answer-sub').textContent   = YES_SUB;
+    sfxYes();
+    launchConfetti();
+    // transition to night planner after confetti joy
+    setTimeout(() => {
+      as.classList.remove('active');
+      document.getElementById('planner-screen').classList.add('active');
+    }, 3200);
+  } else {
+    as.classList.remove('active');
+    document.getElementById('answer-emoji').textContent = '🙈';
+    document.getElementById('answer-text').textContent  = NO_RESPONSE;
+    document.getElementById('answer-sub').textContent   = '';
+    setTimeout(() => {
+      as.classList.add('active');
+      setTimeout(() => {
+        as.classList.remove('active');
+        document.getElementById('locket-screen').classList.add('active');
+      }, 1800);
+    }, 50);
+  }
+}
+
+// ── Night planner ──
+function pickActivity(choice) {
+  sfxChoose(0);
+  if (choice === 'movies') {
+    document.getElementById('planner-screen').classList.remove('active');
+    showEndCard(
+      '🎬',
+      'Movie marathon night 🍿',
+      "Blankets piled up, snacks sorted, you by my side — honestly the perfect night. I'll pick the first one and you pick the next, and we're not stopping until one of us falls asleep. Fair warning: it might be me."
+    );
+  } else {
+    document.getElementById('planner-screen').classList.remove('active');
+    document.getElementById('game-picker-screen').classList.add('active');
+  }
+}
+
+function pickGame(game) {
+  sfxChoose(1);
+  document.getElementById('game-picker-screen').classList.remove('active');
+  if (game === 'stardew') {
+    showEndCard(
+      '🌾',
+      'Stardew Valley night 🐄',
+      "We're building the coziest little farm together and I'm letting you name all the animals — that's how much I like you. Fair warning though: my crops are going to be way better than yours. It's just facts."
+    );
+  } else {
+    showEndCard(
+      '⛏️',
+      'Minecraft night 🌙',
+      "You build, I'll mine — or the other way around, we'll figure it out. Either way we're making something incredible together. I hope you're ready because I've already got plans for our base and they're ambitious."
+    );
+  }
+}
+
+function showEndCard(emoji, title, body) {
+  // reset animations by cloning nodes
+  const es = document.getElementById('end-screen');
+  ['end-emoji','end-title','end-body','end-time-box'].forEach(id => {
+    const el = document.getElementById(id);
+    el.style.animation = 'none';
+    el.offsetHeight; // reflow
+    el.style.animation = '';
+  });
+  document.getElementById('end-emoji').textContent = emoji;
+  document.getElementById('end-title').textContent = title;
+  document.getElementById('end-body').textContent  = body;
+  es.classList.add('active');
+  sfxEnd();
+  launchConfetti();
+}
+
+function launchConfetti() {
+  const colors = ['#ff6bac','#ffb347','#aff','#ffd700','#c9f','#ff85e1'];
+  for (let i = 0; i < 80; i++) {
+    setTimeout(() => {
+      const c = document.createElement('div');
+      c.className = 'confetti-piece';
+      c.style.left            = Math.random() * 100 + 'vw';
+      c.style.background      = colors[Math.floor(Math.random() * colors.length)];
+      c.style.animationDuration = (2 + Math.random() * 2) + 's';
+      c.style.animationDelay  = '0s';
+      c.style.width  = (6 + Math.random() * 8) + 'px';
+      c.style.height = (6 + Math.random() * 8) + 'px';
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 4500);
+    }, i * 40);
+  }
+}
+
+// ── Initial basket position ──
+document.getElementById('basket').style.left = (window.innerWidth/2) + 'px';
+</script>
+</body>
+</html>
